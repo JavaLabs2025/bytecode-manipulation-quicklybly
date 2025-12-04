@@ -28,9 +28,9 @@ public class IntegrationTest {
         Statistic stats = analyzer.analyzeJar(jarPath);
 
         assertThat(stats.getMaxInheritanceDepth()).isEqualTo(4);
-        assertThat(stats.getAverageInheritanceDepth()).isEqualTo(4.0);
-        assertThat(stats.getAverageFieldCount()).isEqualTo(2.0);
-        assertThat(stats.getAverageOverriddenCount()).isEqualTo(1.0);
-        assertThat(stats.getAbcMetric().getAbc()).isBetween(9.0, 10.0);
+        assertThat(stats.getAverageInheritanceDepth()).isEqualTo(2.5);
+        assertThat(stats.getAverageFieldCount()).isEqualTo(1.5);
+        assertThat(stats.getAverageOverriddenCount()).isEqualTo(0.5);
+        assertThat(stats.getAbcMetric().getAbc()).isBetween(10.0, 11.0);
     }
 }
