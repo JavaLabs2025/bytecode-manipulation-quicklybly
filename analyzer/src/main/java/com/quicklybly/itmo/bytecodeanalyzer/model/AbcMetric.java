@@ -58,4 +58,11 @@ public class AbcMetric {
         result = 31 * result + Long.hashCode(condition);
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "AbcMetric{" +
+                "abc=" + getAbc() +
+                '}';
+    }
 }

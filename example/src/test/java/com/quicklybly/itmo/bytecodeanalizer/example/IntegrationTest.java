@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class IntegrationTest {
 
@@ -25,6 +26,11 @@ public class IntegrationTest {
         Analyzer analyzer = new Analyzer();
 
         Statistic stats = analyzer.analyzeJar(jarPath);
-        stats.printStatistic(); // todo
+
+        assertThat(stats.getMaxInheritanceDepth()).isEqualTo(4);
+        assertThat(stats.getAverageInheritanceDepth()).isEqualTo(4.0);
+        assertThat(stats.getAverageFieldCount()).isEqualTo(2.0);
+        assertThat(stats.getAverageOverriddenCount()).isEqualTo(1.0);
+        assertThat(stats.getAbcMetric().getAbc()).isBetween(9.0, 10.0);
     }
 }

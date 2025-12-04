@@ -22,7 +22,7 @@ public class Analyzer {
         var analyzer = new Analyzer();
 
         var statistic = analyzer.analyzeJar(path);
-        statistic.printStatistic();
+        System.out.println(statistic);
     }
 
     public Statistic analyzeJar(Path path) throws IOException {

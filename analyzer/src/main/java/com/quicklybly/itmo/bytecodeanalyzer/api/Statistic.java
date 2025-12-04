@@ -24,15 +24,34 @@ public class Statistic {
         averageOverriddenCountHolder.updateAverage(overriddenCount);
     }
 
-    public void printStatistic() {
-        System.out.println("Average field count: " + fieldAverageHolder.getAverage());
-        System.out.println("ABC: " + abcMetric.getAbc());
-        System.out.println("Inheritance max depth: " + maxInheritanceDepth);
-        System.out.println("Inheritance average depth: " + averageInheritanceDepthHolder.getAverage());
-        System.out.println("Average override count: " + averageOverriddenCountHolder.getAverage());
+    @Override
+    public String toString() {
+        return "Statistic{" +
+                "fieldAverageHolder=" + fieldAverageHolder +
+                ", averageInheritanceDepthHolder=" + averageInheritanceDepthHolder +
+                ", averageOverriddenCountHolder=" + averageOverriddenCountHolder +
+                ", maxInheritanceDepth=" + maxInheritanceDepth +
+                ", abcMetric=" + abcMetric +
+                '}';
     }
 
     public AbcMetric getAbcMetric() {
         return abcMetric;
+    }
+
+    public double getAverageFieldCount() {
+        return fieldAverageHolder.getAverage();
+    }
+
+    public double getAverageInheritanceDepth() {
+        return averageInheritanceDepthHolder.getAverage();
+    }
+
+    public double getAverageOverriddenCount() {
+        return averageOverriddenCountHolder.getAverage();
+    }
+
+    public int getMaxInheritanceDepth() {
+        return maxInheritanceDepth;
     }
 }

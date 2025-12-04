@@ -15,4 +15,11 @@ public class AverageHolder {
             count++;
         }
     }
+
+    @Override
+    public String toString() {
+        return "AverageHolder{" +
+                "average=" + getAverage() +
+                '}';
+    }
 }
