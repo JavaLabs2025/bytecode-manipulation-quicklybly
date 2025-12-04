@@ -3,7 +3,14 @@ package org.example;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.jar.JarFile;
+import org.example.model.Statistic;
+import org.example.util.ClassRepository;
+import org.example.util.provider.ClassProvider;
+import org.example.util.provider.impl.CompositeClassProvider;
+import org.example.util.provider.impl.JarClassProvider;
+import org.example.util.provider.impl.SystemClassProvider;
 import org.example.visitor.ClassStatisticVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -14,32 +21,37 @@ public class Analyzer {
         var path = Path.of("src/main/resources/sample.jar");
         var analyzer = new Analyzer();
 
-        analyzer.analyzeJar(path);
+        var statistic = analyzer.analyzeJar(path);
+        statistic.printStatistic();
     }
 
-    public void analyzeJar(Path path) throws IOException {
+    public Statistic analyzeJar(Path path) throws IOException {
+        Statistic statistic = new Statistic();
         try (JarFile jar = new JarFile(path.toFile())) {
 
-            Statistic statistic = new Statistic();
+            ClassProvider jarProvider = new JarClassProvider(jar);
+            ClassProvider systemProvider = new SystemClassProvider();
+            ClassProvider compositeProvider = new CompositeClassProvider(List.of(jarProvider, systemProvider));
+
+            ClassRepository repository = new ClassRepository(compositeProvider);
+
 
             jar.stream()
                     .filter(entry -> entry.getName().endsWith(".class"))
                     .forEach(entry -> {
-                                // Should be safe for Java classes, since they always in the class with same name
-                                // unlike kotlin classes
-                                String className = entry.getName().replace(".class", "");
+                        String internalName = entry.getName().replace(".class", "");
 
-                                try (InputStream is = jar.getInputStream(entry)) {
-                                    ClassReader cr = new ClassReader(is);
-                                    ClassVisitor visitor = new ClassStatisticVisitor(statistic);
-                                    cr.accept(visitor, 0);
-                                } catch (IOException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            }
-                    );
+                        try (InputStream is = jar.getInputStream(entry)) {
+                            ClassReader cr = new ClassReader(is);
 
-            statistic.printStatistic();
+                            ClassVisitor visitor = new ClassStatisticVisitor(statistic, repository);
+
+                            cr.accept(visitor, 0);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
         }
+        return statistic;
     }
 }

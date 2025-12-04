@@ -1,42 +1,35 @@
 package org.example.visitor;
 
-import org.example.Statistic;
-import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.Attribute;
+import org.example.model.Statistic;
+import org.example.util.ClassRepository;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
-import static org.objectweb.asm.Opcodes.ASM8;
+import org.objectweb.asm.Opcodes;
+import static org.objectweb.asm.Opcodes.ASM9;
 
 public class ClassStatisticVisitor extends ClassVisitor {
 
     private final Statistic statistic;
+    private final ClassRepository repository;
 
-    private Integer fieldCount = 0;
+    private String className;
+    private int fieldCount = 0;
+    private int overriddenCount = 0;
 
-    public ClassStatisticVisitor(Statistic statistic) {
-        super(ASM8);
+    public ClassStatisticVisitor(Statistic statistic, ClassRepository repository) {
+        super(ASM9);
         this.statistic = statistic;
+        this.repository = repository;
     }
 
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-    }
+        this.className = name;
 
-    public void visitSource(String source, String debug) {
-    }
+        int depth = repository.getDepth(name);
+        statistic.writeDepth(depth);
 
-    public void visitOuterClass(String owner, String name, String desc) {
-    }
-
-    public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-        return super.visitAnnotation(desc, visible);
-    }
-
-    public void visitAttribute(Attribute attr) {
-    }
-
-    // todo also visit inner classes
-    public void visitInnerClass(String name, String outerName, String innerName, int access) {
+        super.visit(version, access, name, signature, superName, interfaces);
     }
 
     public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
@@ -45,11 +38,29 @@ public class ClassStatisticVisitor extends ClassVisitor {
     }
 
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-        return super.visitMethod(access, name, desc, signature, exceptions);
+        MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
+
+        boolean isPrivate = (access & Opcodes.ACC_PRIVATE) != 0;
+        boolean isStatic = (access & Opcodes.ACC_STATIC) != 0;
+
+        if (!isPrivate && !isStatic && !name.startsWith("<")) {
+            String methodSig = name + desc;
+            if (repository.isOverridden(className, methodSig)) {
+                overriddenCount++;
+            }
+        }
+
+        boolean hasCode = (access & Opcodes.ACC_ABSTRACT) == 0 && (access & Opcodes.ACC_NATIVE) == 0;
+
+        if (!hasCode) {
+            return mv;
+        }
+
+        return new AbcMethodVisitor(mv, statistic.getAbcMetric());
     }
 
     public void visitEnd() {
         statistic.updateFieldStatistic(fieldCount);
+        statistic.writeOverriddenCount(overriddenCount);
     }
 }
-
